@@ -89,3 +89,13 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+// return how many open files in process identified by pid
+uint64
+sys_getfilenum(void)
+{
+  int pid;
+
+  argint(0, &pid);
+  return getfilenum(pid);
+}
