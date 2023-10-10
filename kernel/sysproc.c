@@ -99,3 +99,12 @@ sys_getfilenum(void)
   argint(0, &pid);
   return getfilenum(pid);
 }
+
+uint64
+sys_settickets(void)
+{
+  int number;
+
+  argint(0, &number);
+  return settickets(number);
+}
