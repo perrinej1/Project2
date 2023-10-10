@@ -627,6 +627,18 @@ getfilenum(int pid)
   return -1;
 }
 
+// Sets the number of tickets for the calling processe
+// All process should get one ticket
+// return 0 if successful, -1 if otherwise
+int
+settickets(int number)
+{
+  number = 1;
+  struct proc *p = myproc();
+  p->tickets = number;
+  return 0;
+}
+
 void
 setkilled(struct proc *p)
 {
