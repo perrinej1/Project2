@@ -644,9 +644,21 @@ settickets(int number)
   return -1;
 }
 
+// Returns info on all running processes
+// This includes how many times each has been chosen to run
+// and the pid of each
+// Return 0 if successful, and -1 otherwise
 int
-getpinfo(struct pstat*)
+getpinfo(struct pstat* pFromUser)
 {
+  struct pstat pinfo;   // local to kernel
+
+  for(int i=0; i < NPROC; i++)
+  {
+    pinfo.inuse[i] = (proc[i].state != UNUSED);
+
+  }
+  either_copyout(1, (uint64) pFromUser, &pinfo, sizeof(struct pstat));
   return 0;
 }
 
