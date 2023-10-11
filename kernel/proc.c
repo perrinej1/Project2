@@ -633,10 +633,14 @@ getfilenum(int pid)
 int
 settickets(int number)
 {
-  number = 1;
   struct proc *p = myproc();
-  p->tickets = number;
-  return 0;
+
+  if(number > 0)
+  {
+    p->tickets = number;
+    return 0;
+  }
+  return -1;
 }
 
 void
