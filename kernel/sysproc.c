@@ -101,6 +101,7 @@ sys_getfilenum(void)
   return getfilenum(pid);
 }
 
+// return the number of set tickets
 uint64
 sys_settickets(void)
 {
@@ -110,8 +111,11 @@ sys_settickets(void)
   return settickets(number);
 }
 
+// return and pull the address out
 uint64
 sys_getpinfo(void)
 {
-
+  struct pstat *p;
+  argaddr(0, (uint64) p);
+  return getpinfo(p);
 }
