@@ -5,6 +5,7 @@
 #include "memlayout.h"
 #include "spinlock.h"
 #include "proc.h"
+#include "pstat.h"
 
 uint64
 sys_exit(void)
@@ -107,4 +108,10 @@ sys_settickets(void)
 
   argint(0, &number);
   return settickets(number);
+}
+
+uint64
+sys_getpinfo(void)
+{
+
 }
