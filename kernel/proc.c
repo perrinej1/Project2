@@ -6,6 +6,7 @@
 #include "proc.h"
 #include "defs.h"
 #include "pstat.h"
+#include "random.h"
 
 struct cpu cpus[NCPU];
 
@@ -449,11 +450,36 @@ scheduler(void)
   struct cpu *c = mycpu();
 
   c->proc = 0;
+
+  // Assigning tickets to processes
+  for(p = proc; p < &proc[NPROC]; p++)
+  {
+    p->tickets = settickets(1);
+  }
+
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    for(p = proc; p < &proc[NPROC]; p++) {
+    // The lottery scheduler
+    int randProc = scaled_random(0, NPROC);     // selecting a random process
+
+    p = &p[randProc];    // setting p as random process
+
+    acquire(&p->lock);
+    if(p->state == RUNNABLE)   // checking if its runnable
+    {
+      p->state = RUNNING;
+      c->proc = p;
+      swtch(&c->context, &p->context);
+
+      c->proc = 0;
+      p->ticks++;
+    }
+    release(&p->lock);
+
+    // Ignore this loop for now
+    /*for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
         // Switch to chosen process.  It is the process's job
@@ -468,7 +494,7 @@ scheduler(void)
         c->proc = 0;
       }
       release(&p->lock);
-    }
+    }*/
   }
 }
 
@@ -653,10 +679,18 @@ getpinfo(struct pstat* pFromUser)
 {
   struct pstat pinfo;   // local to kernel
 
+  // check to see if unsuccessful
+  //if(pinfo == NULL)
+  //{
+  //  return -1;
+  //}
+
   for(int i=0; i < NPROC; i++)
   {
     pinfo.inuse[i] = (proc[i].state != UNUSED);
-
+    pinfo.tickets[i] = proc[i].tickets;
+    pinfo.pid[i] = proc[i].pid;
+    pinfo.ticks[i] = proc[i].ticks;
   }
   either_copyout(1, (uint64) pFromUser, &pinfo, sizeof(struct pstat));
   return 0;
