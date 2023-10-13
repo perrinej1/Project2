@@ -436,6 +436,7 @@ wait(uint64 addr)
   }
 }
 
+// CHANGING THIS TO LOTTERY SCHEDULER
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -448,37 +449,50 @@ scheduler(void)
 {
   struct proc *p;
   struct cpu *c = mycpu();
+  rand_init(10);
 
   c->proc = 0;
 
   // Assigning tickets to processes
   for(p = proc; p < &proc[NPROC]; p++)
   {
-    p->tickets = settickets(1);
+    p->tickets = settickets(50);
   }
+  int totalTickets = p->tickets;
 
   for(;;){
     // Avoid deadlock by ensuring that devices can interrupt.
     intr_on();
 
-    // The lottery scheduler
-    int randProc = scaled_random(0, NPROC);     // selecting a random process
+    int count = 0;
+    int ticket = scaled_random(0, totalTickets);     // selecting random ticket
 
-    p = &p[randProc];    // setting p as random process
-
-    acquire(&p->lock);
-    if(p->state == RUNNABLE)   // checking if its runnable
+    for(int i = 0; i < NPROC; i++)
     {
-      p->state = RUNNING;
-      c->proc = p;
-      swtch(&c->context, &p->context);
+      count += i;      // add count by the number of tickets for this process
 
-      c->proc = 0;
-      p->ticks++;
+      // Finding the process with the ticket
+      p = &proc[i];
+      acquire(&p->lock);
+
+      // If the correct process is found, run it
+      // If not, move onto the next one
+      if(p->state == RUNNABLE && count >= ticket)
+      {
+        p->state = RUNNING;
+        c->proc = p;
+        swtch(&c->context, &p->context);
+
+        c->proc = 0;
+        p->ticks++;
+      }
+      release(&p->lock);
+
+      totalTickets = settickets(totalTickets-1);
     }
-    release(&p->lock);
 
-    // Ignore this loop for now
+
+    // Ignore this line
     /*for(p = proc; p < &proc[NPROC]; p++) {
       acquire(&p->lock);
       if(p->state == RUNNABLE) {
@@ -678,12 +692,6 @@ int
 getpinfo(struct pstat* pFromUser)
 {
   struct pstat pinfo;   // local to kernel
-
-  // check to see if unsuccessful
-  //if(pinfo == NULL)
-  //{
-  //  return -1;
-  //}
 
   for(int i=0; i < NPROC; i++)
   {
