@@ -10,10 +10,10 @@ main(struct pstat* ps)
   // print all info needed for getpinfo
   for(int i=0; i < NPROC, i++)
   {
-    printf("PID = %d\n", ps->pid);
-    printf("Inuse = %d\n", ps->inuse);
-    printf("Number of tickets process has = %d\n", ps->tickets);
-    printf("Number of tickets acculated = %d\n", ps->ticks);
+    printf("PID = %d\n", ps->pid[i]);
+    printf("Inuse = %d\n", ps->inuse[i]);
+    printf("Number of tickets process has = %d\n", ps->tickets[i]);
+    printf("Number of tickets acculated = %d\n", ps->ticks[i]);
   }
 
   exit(0);
